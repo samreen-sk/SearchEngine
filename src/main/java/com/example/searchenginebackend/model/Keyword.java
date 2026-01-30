@@ -1,10 +1,12 @@
 package com.example.searchenginebackend.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.List;
 
 @Entity
+@Data
 @Table(
         name = "keywords",
         indexes = {

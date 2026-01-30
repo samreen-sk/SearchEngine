@@ -1,11 +1,15 @@
 package com.example.searchenginebackend.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Data
+@NoArgsConstructor
 @Table(
         name = "web_pages",
         indexes = {
@@ -36,8 +40,6 @@ public class WebPage {
 
     @OneToMany(mappedBy = "webPage", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PageKeyword> pageKeywords;
-
-    public WebPage() {}
 
     @PrePersist
     public void onCreate() {

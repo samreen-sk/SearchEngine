@@ -1,8 +1,12 @@
 package com.example.searchenginebackend.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Data
+@NoArgsConstructor
 @Table(
         name = "page_keywords",
         uniqueConstraints = {
@@ -31,8 +35,6 @@ public class PageKeyword {
 
     @Column(name = "is_in_title", nullable = false)
     private boolean inTitle;
-
-    public PageKeyword() {}
 
     // Getters and Setters
 }
