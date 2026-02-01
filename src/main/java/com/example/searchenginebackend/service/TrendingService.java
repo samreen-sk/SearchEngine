@@ -1,6 +1,4 @@
 package com.example.searchenginebackend.service;
 
-public class CrawlerService {
-
-
+public class TrendingService {
 }
