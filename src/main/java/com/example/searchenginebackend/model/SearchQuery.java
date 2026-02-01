@@ -1,7 +1,8 @@
 package com.example.searchenginebackend.model;
 
 import jakarta.persistence.*;
-
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_query_time", columnList = "searchedAt")
         }
 )
+@Data
+@NoArgsConstructor
 public class SearchQuery {
 
     @Id
@@ -24,8 +27,6 @@ public class SearchQuery {
     @Column(name = "searched_at", nullable = false)
     private LocalDateTime searchedAt;
 
-    public SearchQuery() {}
-
     public SearchQuery(String queryText) {
         this.queryText = queryText;
         this.searchedAt = LocalDateTime.now();
@@ -35,6 +36,4 @@ public class SearchQuery {
     public void onSearch() {
         this.searchedAt = LocalDateTime.now();
     }
-
-    // Getters and Setters
 }

@@ -1,16 +1,17 @@
 package com.example.searchenginebackend.model;
 
 import jakarta.persistence.*;
-
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(
         name = "search_results",
-        indexes = {
-                @Index(name = "idx_result_score", columnList = "score")
-        }
+        indexes = { @Index(name = "idx_result_score", columnList = "score") }
 )
+@Data
+@NoArgsConstructor
 public class SearchResult {
 
     @Id
@@ -38,8 +39,4 @@ public class SearchResult {
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
-
-    public SearchResult() {}
-
-    // Getters and Setters
 }

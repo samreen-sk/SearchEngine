@@ -1,69 +1,74 @@
 package com.example.searchenginebackend.config;
 
-import com.example.searchenginebackend.model.Keyword;
-import com.example.searchenginebackend.model.PageKeyword;
-import com.example.searchenginebackend.model.WebPage;
-import com.example.searchenginebackend.repository.KeywordRepository;
-import com.example.searchenginebackend.repository.PageKeywordRepository;
-import com.example.searchenginebackend.repository.WebPageRepository;
+import com.example.searchenginebackend.model.*;
+import com.example.searchenginebackend.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Configuration
+@RequiredArgsConstructor
 public class DatabaseSeeder {
 
-    CommandLineRunner initDatabase(WebPageRepository webPageRepo,
-                                   KeywordRepository keywordRepo,
-                                   PageKeywordRepository pageKeywordRepo) {
-        return args -> {
-            System.out.println("--- STARTING DATABASE INTEGRATION TEST ---");
+    private final WebPageRepository webPageRepo;
+    private final KeywordRepository keywordRepo;
+    private final PageKeywordRepository pageKeywordRepo;
+    private final SearchQueryRepository searchQueryRepo;
+    private final SearchResultRepository searchResultRepo;
 
-            // 1. Create a WebPage
+    @Bean
+    public CommandLineRunner initDatabase() {
+        return args -> {
+            System.out.println("--- CHECKING DATABASE STATE ---");
+
+            String url = "https://react.dev";
+            String keywordVal = "react";
+
+            // 1. Check if Page Exists
+            if (webPageRepo.findByUrl(url).isPresent()) {
+                System.out.println("⚠️ Data already exists. Skipping seeding.");
+                return;
+            }
+
+            // 2. Create WebPage
             WebPage page1 = new WebPage();
-            page1.setUrl("https://react.dev");
+            page1.setUrl(url);
             page1.setTitle("React - The Library for Web and Native User Interfaces");
             page1.setContent("React lets you build user interfaces out of individual pieces called components.");
             page1.setLastUpdated(LocalDateTime.now());
             page1.setCrawlTime(LocalDateTime.now());
-
-            // Save Page
             webPageRepo.save(page1);
-            System.out.println("WebPage Saved: " + page1.getUrl());
 
-            // 2. Create a Keyword
-            Keyword key1 = new Keyword("react");
-            keywordRepo.save(key1);
-            System.out.println("Keyword Saved: " + key1.getWord());
+            // 3. Create Keyword (Check if exists first to be safe)
+            Keyword key1 = keywordRepo.findByWord(keywordVal)
+                    .orElseGet(() -> {
+                        Keyword k = new Keyword(keywordVal);
+                        return keywordRepo.save(k);
+                    });
 
-            // 3. Link them (PageKeyword)
+            // 4. Link Page and Keyword
             PageKeyword link = new PageKeyword();
             link.setWebPage(page1);
             link.setKeyword(key1);
             link.setFrequency(10);
             link.setInTitle(true);
-
             pageKeywordRepo.save(link);
-            System.out.println("Linked Page and Keyword");
 
-            // 4. TEST THE SEARCH QUERY (The one used for Incremental Scroll)
-            System.out.println("--- TESTING REPOSITORY QUERY ---");
+            // 5. Create Dummy Analytics Data
+            SearchQuery userQuery = new SearchQuery(keywordVal);
+            searchQueryRepo.save(userQuery);
 
-            Page<WebPage> results = webPageRepo.findByKeyword("react", PageRequest.of(0, 10));
+            SearchResult resultLog = new SearchResult();
+            resultLog.setSearchQuery(userQuery);
+            resultLog.setWebPage(page1);
+            resultLog.setScore(1.0);
+            resultLog.setRank(1);
+            searchResultRepo.save(resultLog);
 
-            if (results.hasContent()) {
-                System.out.println("SUCCESS! Found " + results.getTotalElements() + " page(s) for keyword 'react'.");
-                System.out.println(" Title: " + results.getContent().get(0).getTitle());
-            } else {
-                System.out.println("FAILURE: Repository query returned no results.");
-            }
-
-            System.out.println("--- TEST COMPLETE ---");
+            System.out.println("✅ Database Seeded Successfully");
         };
     }
 }
