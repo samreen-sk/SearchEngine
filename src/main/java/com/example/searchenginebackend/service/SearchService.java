@@ -1,8 +1,10 @@
 package com.example.searchenginebackend.service;
 
+import com.example.searchenginebackend.exception.ResourceNotFoundException;
 import com.example.searchenginebackend.model.SearchQuery;
 import com.example.searchenginebackend.model.SearchResult;
 import com.example.searchenginebackend.model.WebPage;
+import com.example.searchenginebackend.repository.KeywordRepository;
 import com.example.searchenginebackend.repository.SearchQueryRepository;
 import com.example.searchenginebackend.repository.SearchResultRepository;
 import com.example.searchenginebackend.repository.WebPageRepository;
@@ -19,25 +21,28 @@ public class SearchService {
     private final WebPageRepository webPageRepository;
     private final SearchQueryRepository searchQueryRepository;
     private final SearchResultRepository searchResultRepository;
+    private final KeywordRepository keywordRepository;
     private final RankingService rankingService;
 
     @Transactional
     public Page<WebPage> search(String query, Pageable pageable) {
 
+        // ✅ CHECK IF KEYWORD EXISTS
+        if (keywordRepository.findByWord(query.toLowerCase()).isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "Unable to search this content: '" + query + "' is not indexed"
+            );
+        }
+
+        // Save search query
         SearchQuery searchQuery =
                 searchQueryRepository.save(new SearchQuery(query));
 
         Page<WebPage> pages =
                 webPageRepository.findByKeyword(query, pageable);
 
-        if (pages.isEmpty()) {
-            pages = webPageRepository
-                    .findByTitleContainingIgnoreCase(query, pageable);
-        }
-
         int rank = 1;
         for (WebPage page : pages) {
-
             SearchResult result = new SearchResult();
             result.setSearchQuery(searchQuery);
             result.setWebPage(page);
@@ -45,7 +50,6 @@ public class SearchService {
             result.setScore(
                     rankingService.calculateScore(1, true, rank)
             );
-
             searchResultRepository.save(result);
             rank++;
         }
