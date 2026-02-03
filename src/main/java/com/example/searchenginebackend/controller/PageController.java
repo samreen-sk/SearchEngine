@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class PageController {
 
     private final CrawlerService crawlerService;
-
     @PostMapping("/crawl")
     public CrawlResponseDTO crawlPage(@RequestBody CrawlRequest request) {
 
