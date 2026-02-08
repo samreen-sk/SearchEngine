@@ -36,5 +36,8 @@ public class PageKeyword {
     @Column(name = "is_in_title", nullable = false)
     private boolean inTitle;
 
+    @Column(name = "keyword_word", length = 255)
+    private String keywordWord;
+
     // Getters and Setters
 }

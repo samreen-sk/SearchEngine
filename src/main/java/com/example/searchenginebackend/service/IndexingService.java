@@ -35,6 +35,7 @@ public class IndexingService {
             PageKeyword pageKeyword = new PageKeyword();
             pageKeyword.setWebPage(page);
             pageKeyword.setKeyword(keyword);
+            pageKeyword.setKeywordWord(keyword.getWord());
             pageKeyword.setFrequency(entry.getValue());
             pageKeyword.setInTitle(
                     page.getTitle().toLowerCase().contains(entry.getKey())

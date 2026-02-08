@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Search Engine Test UI</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div class="brand">Search Engine</div>
+        <div class="subtitle"></div>
+      </header>
+
+      <section class="panel">
+        <form id="searchForm" class="search-form">
+          <input
+            id="queryInput"
+            type="text"
+            name="query"
+            placeholder="Search (e.g. saveetha engineering college)"
+            autocomplete="off"
+            required
+          />
+          <button type="submit">Search</button>
+        </form>
+
+        <div class="controls">
+          <div class="control-group">
+            <span class="control-label">Page</span>
+            <div class="pager">
+              <button id="prevPageBtn" type="button" class="ghost">Prev</button>
+              <input id="pageInput" type="number" min="0" value="0" />
+              <button id="nextPageBtn" type="button" class="ghost">Next</button>
+            </div>
+          </div>
+          <button id="resetBtn" type="button" class="ghost">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="meta">
+          <div id="statusText">Enter a query to start.</div>
+          <div id="elapsedText"></div>
+        </div>
+        <div id="results" class="results"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
