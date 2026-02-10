@@ -1,9 +1,8 @@
 # Realtime Web Page Search Engine
 
 ![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.x-brightgreen)
-![MySQL](https://img.shields.io/badge/MySQL-8.x-blue)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
 
 ## Description
 Realtime Web Page Search Engine is a search backend with a simple UI. It fetches live search results, computes relevance signals, and stores queries/results in MySQL for inspection, analytics, and reuse. It is built for students and developers who want a transparent, inspectable search pipeline rather than a black-box search experience.
