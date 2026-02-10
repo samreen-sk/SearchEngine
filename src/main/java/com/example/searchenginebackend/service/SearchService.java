@@ -1,6 +1,7 @@
 package com.example.searchenginebackend.service;
 
 import com.example.searchenginebackend.dto.SearchResponseDTO;
+import com.example.searchenginebackend.dto.TopQueryDTO;
 import com.example.searchenginebackend.exception.BadRequestException;
 import com.example.searchenginebackend.model.SearchQuery;
 import com.example.searchenginebackend.model.SearchResult;
@@ -74,6 +75,43 @@ public class SearchService {
             rank++;
         }
 
+        return response;
+    }
+
+    public List<SearchQuery> getRecentQueries() {
+        return searchQueryRepository.findTop10ByOrderBySearchedAtDesc();
+    }
+
+    public List<TopQueryDTO> getTopQueries() {
+        List<Object[]> rows = searchQueryRepository.findMostPopularQueries();
+        List<TopQueryDTO> output = new ArrayList<>();
+        for (Object[] row : rows) {
+            String query = String.valueOf(row[0]);
+            long count = ((Number) row[1]).longValue();
+            output.add(new TopQueryDTO(query, count));
+        }
+        return output;
+    }
+
+    public List<SearchResponseDTO> getStoredResults(String query) {
+        String normalizedQuery = query == null ? "" : query.trim();
+        if (normalizedQuery.isBlank()) {
+            throw new BadRequestException("Query cannot be empty");
+        }
+
+        List<SearchResult> results =
+                searchResultRepository.findByQueryTextOrderByRankAsc(normalizedQuery);
+
+        List<SearchResponseDTO> response = new ArrayList<>();
+        for (SearchResult result : results) {
+            response.add(new SearchResponseDTO(
+                    result.getWebPage().getId(),
+                    result.getWebPage().getUrl(),
+                    result.getWebPage().getTitle(),
+                    result.getRelevanceScore(),
+                    result.getRank()
+            ));
+        }
         return response;
     }
 

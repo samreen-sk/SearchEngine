@@ -11,4 +11,6 @@ public interface SearchResultRepository extends JpaRepository<SearchResult, Long
 
     // Retrieve the results logged for a specific query session
     List<SearchResult> findBySearchQueryIdOrderByRankAsc(Long searchQueryId);
+
+    List<SearchResult> findByQueryTextOrderByRankAsc(String queryText);
 }
