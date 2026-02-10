@@ -236,14 +236,14 @@ classDiagram
         +Double cosineSimilarity
     }
 
-    SearchController --> SearchService
-    SearchService --> SerperSearchService
-    SearchService --> SearchQueryRepository
-    SearchService --> SearchResultRepository
-    SearchService --> WebPageRepository
-    SearchQueryRepository --> SearchQuery
-    SearchResultRepository --> SearchResult
-    WebPageRepository --> WebPage
+    SearchController --> SearchService : uses
+    SearchService --> SerperSearchService : calls
+    SearchService --> SearchQueryRepository : stores queries
+    SearchService --> SearchResultRepository : stores results
+    SearchService --> WebPageRepository : persists pages
+    SearchQueryRepository --> SearchQuery : manages
+    SearchResultRepository --> SearchResult : manages
+    WebPageRepository --> WebPage : manages
 ```
 
 ## Workflow
