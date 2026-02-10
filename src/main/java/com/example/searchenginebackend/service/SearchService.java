@@ -2,7 +2,9 @@ package com.example.searchenginebackend.service;
 
 import com.example.searchenginebackend.dto.SearchResponseDTO;
 import com.example.searchenginebackend.dto.TopQueryDTO;
+import com.example.searchenginebackend.dto.UpdateSearchResultDTO;
 import com.example.searchenginebackend.exception.BadRequestException;
+import com.example.searchenginebackend.exception.ResourceNotFoundException;
 import com.example.searchenginebackend.model.SearchQuery;
 import com.example.searchenginebackend.model.SearchResult;
 import com.example.searchenginebackend.model.WebPage;
@@ -113,6 +115,53 @@ public class SearchService {
             ));
         }
         return response;
+    }
+
+    public SearchResult updateResult(Long id, UpdateSearchResultDTO update) {
+        SearchResult result = searchResultRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Result not found"));
+
+        if (update.getRank() != null) {
+            result.setRank(update.getRank());
+        }
+        if (update.getRelevanceScore() != null) {
+            result.setRelevanceScore(update.getRelevanceScore());
+        }
+        if (update.getCosineSimilarity() != null) {
+            result.setCosineSimilarity(update.getCosineSimilarity());
+        }
+
+        return searchResultRepository.save(result);
+    }
+
+    public void deleteResult(Long id) {
+        if (!searchResultRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Result not found");
+        }
+        searchResultRepository.deleteById(id);
+    }
+
+    public long deleteResultsByQuery(String query) {
+        String normalizedQuery = query == null ? "" : query.trim();
+        if (normalizedQuery.isBlank()) {
+            throw new BadRequestException("Query cannot be empty");
+        }
+        return searchResultRepository.deleteByQueryText(normalizedQuery);
+    }
+
+    public void deleteQueryById(Long id) {
+        if (!searchQueryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Query not found");
+        }
+        searchQueryRepository.deleteById(id);
+    }
+
+    public long deleteQueryByText(String query) {
+        String normalizedQuery = query == null ? "" : query.trim();
+        if (normalizedQuery.isBlank()) {
+            throw new BadRequestException("Query cannot be empty");
+        }
+        return searchQueryRepository.deleteByQueryText(normalizedQuery);
     }
 
     private WebPage upsertWebPage(String url, String title, String content) {

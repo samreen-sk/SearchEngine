@@ -14,6 +14,8 @@ public interface SearchQueryRepository extends JpaRepository<SearchQuery, Long> 
 
     List<SearchQuery> findTop10ByQueryTextOrderBySearchedAtDesc(String queryText);
 
+    long deleteByQueryText(String queryText);
+
     // For Analytics: Find popular queries (simple grouping)
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT query_text AS queryText, COUNT(*) AS cnt " +

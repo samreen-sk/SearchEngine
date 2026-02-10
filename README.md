@@ -8,6 +8,11 @@
 | GET | `/api/search/history` | Returns the 10 most recent search queries. |
 | GET | `/api/search/top` | Returns the 10 most frequent search queries. |
 | GET | `/api/search/results?query=...` | Returns stored results for a given query from MySQL. |
+| PUT | `/api/search/results/{id}` | Updates rank or scores for a stored result. |
+| DELETE | `/api/search/results/{id}` | Deletes a stored result by id. |
+| DELETE | `/api/search/results?query=...` | Deletes stored results for a given query. |
+| DELETE | `/api/search/history/{id}` | Deletes a search query by id. |
+| DELETE | `/api/search/history?query=...` | Deletes search history by query text. |
 
 ### `POST /api/search`
 
@@ -71,6 +76,167 @@ Response (example):
     "rank": 1
   }
 ]
+```
+
+### `PUT /api/search/results/{id}`
+
+Request body:
+```json
+{
+  "rank": 1,
+  "relevanceScore": 1.0,
+  "cosineSimilarity": 0.42
+}
+```
+
+Response (example):
+```json
+{
+  "id": 5,
+  "queryText": "apple inc",
+  "cosineSimilarity": 0.42,
+  "relevanceScore": 1.0,
+  "rank": 1
+}
+```
+
+### `DELETE /api/search/results/{id}`
+
+Response:
+```
+204 No Content
+```
+
+### `DELETE /api/search/results?query=apple%20inc`
+
+Response (example):
+```json
+5
+```
+
+### `DELETE /api/search/history/{id}`
+
+Response:
+```
+204 No Content
+```
+
+### `DELETE /api/search/history?query=apple%20inc`
+
+Response (example):
+```json
+3
+```
+
+## Class Diagram
+
+```mermaid
+classDiagram
+    class SearchController {
+        +List~SearchResponseDTO~ search(SearchRequestDTO request)
+        +List~SearchQuery~ history()
+        +List~TopQueryDTO~ topQueries()
+        +List~SearchResponseDTO~ resultsByQuery(String query)
+        +SearchResult updateResult(Long id, UpdateSearchResultDTO request)
+        +void deleteResult(Long id)
+        +long deleteResultsByQuery(String query)
+        +void deleteHistoryById(Long id)
+        +long deleteHistoryByQuery(String query)
+    }
+
+    class SearchService {
+        +List~SearchResponseDTO~ search(String query, Pageable pageable)
+        +List~SearchQuery~ getRecentQueries()
+        +List~TopQueryDTO~ getTopQueries()
+        +List~SearchResponseDTO~ getStoredResults(String query)
+        +SearchResult updateResult(Long id, UpdateSearchResultDTO update)
+        +void deleteResult(Long id)
+        +long deleteResultsByQuery(String query)
+        +void deleteQueryById(Long id)
+        +long deleteQueryByText(String query)
+    }
+
+    class SerperSearchService {
+        +List~SerperResult~ search(String query, int page, int size)
+    }
+
+    class SearchQueryRepository {
+        +List~SearchQuery~ findTop10ByOrderBySearchedAtDesc()
+        +List~SearchQuery~ findTop10ByQueryTextOrderBySearchedAtDesc(String queryText)
+        +List~Object[]~ findMostPopularQueries()
+        +long deleteByQueryText(String queryText)
+    }
+
+    class SearchResultRepository {
+        +List~SearchResult~ findBySearchQueryIdOrderByRankAsc(Long searchQueryId)
+        +List~SearchResult~ findByQueryTextOrderByRankAsc(String queryText)
+        +long deleteByQueryText(String queryText)
+    }
+
+    class WebPageRepository {
+        +Optional~WebPage~ findByUrl(String url)
+        +boolean existsByUrl(String url)
+        +Page~WebPage~ findByKeyword(String word, Pageable pageable)
+        +Page~WebPage~ findByTitleContainingIgnoreCase(String titlePart, Pageable pageable)
+    }
+
+    class SearchQuery {
+        +Long id
+        +String queryText
+        +LocalDateTime searchedAt
+    }
+
+    class SearchResult {
+        +Long id
+        +String queryText
+        +double cosineSimilarity
+        +double relevanceScore
+        +int rank
+        +LocalDateTime createdAt
+    }
+
+    class WebPage {
+        +Long id
+        +String url
+        +String title
+        +String content
+        +LocalDateTime crawlTime
+        +LocalDateTime lastUpdated
+    }
+
+    class SearchRequestDTO {
+        +String query
+        +int page
+        +int size
+    }
+
+    class SearchResponseDTO {
+        +Long pageId
+        +String url
+        +String title
+        +double score
+        +int rank
+    }
+
+    class TopQueryDTO {
+        +String query
+        +long count
+    }
+
+    class UpdateSearchResultDTO {
+        +Integer rank
+        +Double relevanceScore
+        +Double cosineSimilarity
+    }
+
+    SearchController --> SearchService
+    SearchService --> SerperSearchService
+    SearchService --> SearchQueryRepository
+    SearchService --> SearchResultRepository
+    SearchService --> WebPageRepository
+    SearchQueryRepository --> SearchQuery
+    SearchResultRepository --> SearchResult
+    WebPageRepository --> WebPage
 ```
 
 ## Workflow
