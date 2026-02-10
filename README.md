@@ -26,7 +26,7 @@ Realtime Web Page Search Engine is a search backend with a simple UI. It fetches
 Request body:
 ```json
 {
-  "query": "apple inc",
+  "query": "saveetha engineering college",
   "page": 0,
   "size": 10
 }
@@ -52,7 +52,7 @@ Response (example):
 [
   {
     "id": 12,
-    "queryText": "apple inc",
+    "queryText": "saveetha engineering college",
     "searchedAt": "2026-02-10T12:30:00"
   }
 ]
@@ -64,13 +64,13 @@ Response (example):
 ```json
 [
   {
-    "query": "apple inc",
+    "query": "saveetha engineering college",
     "count": 5
   }
 ]
 ```
 
-### `GET /api/search/results?query=apple%20inc`
+### `GET /api/search/results?query=saveetha%20engineering%20college`
 
 Response (example):
 ```json
@@ -114,7 +114,7 @@ Response:
 204 No Content
 ```
 
-### `DELETE /api/search/results?query=apple%20inc`
+### `DELETE /api/search/results?query=saveetha%20engineering%20college`
 
 Response (example):
 ```json
@@ -128,7 +128,7 @@ Response:
 204 No Content
 ```
 
-### `DELETE /api/search/history?query=apple%20inc`
+### `DELETE /api/search/history?query=saveetha%20engineering%20college`
 
 Response (example):
 ```json
