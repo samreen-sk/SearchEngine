@@ -12,6 +12,8 @@ public interface SearchQueryRepository extends JpaRepository<SearchQuery, Long> 
     // For Analytics: Get the most recent searches
     List<SearchQuery> findTop10ByOrderBySearchedAtDesc();
 
+    List<SearchQuery> findAllByOrderBySearchedAtDesc();
+
     List<SearchQuery> findTop10ByQueryTextOrderBySearchedAtDesc(String queryText);
 
     long deleteByQueryText(String queryText);

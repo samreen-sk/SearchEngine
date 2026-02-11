@@ -13,7 +13,7 @@ Realtime Web Page Search Engine is a search backend with a simple UI. It fetches
 - Relevance scoring based on rank plus cosine similarity metrics stored for analysis.
 - Search history, top queries, and stored results retrieval.
 - Update and delete operations for stored results and history.
-- Simple web UI for searching and viewing insights.
+- Web UI pages: Search (`/`), History (`/history.html`), Top Queries (`/top.html`), Stored Results (`/stored.html`).
 
 ## Architecture Diagram
 
@@ -26,7 +26,7 @@ Realtime Web Page Search Engine is a search backend with a simple UI. It fetches
 | Method | Path | Description |
 | --- | --- | --- |
 | POST | `/api/search` | Searches the web via Serper and returns ranked results with relevance score. |
-| GET | `/api/search/history` | Returns the 10 most recent search queries. |
+| GET | `/api/search/history` | Returns all search queries ordered by most recent. |
 | GET | `/api/search/top` | Returns the 10 most frequent search queries. |
 | GET | `/api/search/results?query=...` | Returns stored results for a given query from MySQL. |
 | PUT | `/api/search/results/{id}` | Updates rank or scores for a stored result. |
@@ -37,19 +37,33 @@ Realtime Web Page Search Engine is a search backend with a simple UI. It fetches
 
 ### `POST /api/search`
 
-Request body:
+Request body (fields):
+- `query` (string, required): search text.
+- `page` (number, required): zero-based page index.
+- `size` (number, required): page size.
+
+Request example:
 ```json
 {
-  "query": "saveetha engineering college",
+  "query": "saveetha engineering colge",
   "page": 0,
   "size": 10
 }
 ```
 
-Response (example):
+Response body (array of results):
+- `resultId` (number): stored result id (for updates/deletes).
+- `pageId` (number): stored web page id.
+- `url` (string): result URL.
+- `title` (string): result title.
+- `score` (number): relevance score.
+- `rank` (number): rank position.
+
+Response example:
 ```json
 [
   {
+    "resultId": 5,
     "pageId": 1,
     "url": "https://example.com",
     "title": "Example",
@@ -59,37 +73,95 @@ Response (example):
 ]
 ```
 
+Status codes:
+- `200 OK` on success.
+- `400 Bad Request` if `query` is empty.
+
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Query cannot be empty"
+}
+```
+
 ### `GET /api/search/history`
 
-Response (example):
+Response body (array of searches):
+- `id` (number): query id.
+- `queryText` (string): searched text.
+- `searchedAt` (string, ISO-8601): timestamp.
+
+Response example:
 ```json
 [
   {
     "id": 12,
-    "queryText": "saveetha engineering college",
+    "queryText": "saveetha engineering colge",
     "searchedAt": "2026-02-10T12:30:00"
   }
 ]
 ```
 
+Status codes:
+- `200 OK` on success.
+
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "Unable to load history"
+}
+```
+
 ### `GET /api/search/top`
 
-Response (example):
+Response body (array of top queries):
+- `query` (string): query text.
+- `count` (number): total searches.
+
+Response example:
 ```json
 [
   {
-    "query": "saveetha engineering college",
+    "query": "saveetha engineering colge",
     "count": 5
   }
 ]
 ```
 
-### `GET /api/search/results?query=saveetha%20engineering%20college`
+Status codes:
+- `200 OK` on success.
 
-Response (example):
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "Unable to load top queries"
+}
+```
+
+### `GET /api/search/results?query=saveetha%20engineering%20colge`
+
+Response body (array of stored results):
+- `resultId` (number): stored result id.
+- `pageId` (number): stored web page id.
+- `url` (string): result URL.
+- `title` (string): result title.
+- `score` (number): relevance score.
+- `rank` (number): rank position.
+
+Response example:
 ```json
 [
   {
+    "resultId": 5,
     "pageId": 1,
     "url": "https://example.com",
     "title": "Example",
@@ -99,9 +171,28 @@ Response (example):
 ]
 ```
 
+Status codes:
+- `200 OK` on success.
+- `400 Bad Request` if `query` is empty.
+
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Query cannot be empty"
+}
+```
+
 ### `PUT /api/search/results/{id}`
 
-Request body:
+Request body (any subset is allowed):
+- `rank` (number, optional)
+- `relevanceScore` (number, optional)
+- `cosineSimilarity` (number, optional)
+
+Request example:
 ```json
 {
   "rank": 1,
@@ -110,43 +201,121 @@ Request body:
 }
 ```
 
-Response (example):
+Response body:
+- `id` (number)
+- `queryText` (string)
+- `cosineSimilarity` (number)
+- `relevanceScore` (number)
+- `rank` (number)
+
+Response example:
 ```json
 {
   "id": 5,
-  "queryText": "apple inc",
+  "queryText": "saveetha engineering colge",
   "cosineSimilarity": 0.42,
   "relevanceScore": 1.0,
   "rank": 1
 }
 ```
 
+Status codes:
+- `200 OK` on success.
+- `404 Not Found` if result id does not exist.
+
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Result not found"
+}
+```
+
 ### `DELETE /api/search/results/{id}`
 
-Response:
+Response body:
 ```
 204 No Content
 ```
 
-### `DELETE /api/search/results?query=saveetha%20engineering%20college`
+Status codes:
+- `204 No Content` on success.
+- `404 Not Found` if result id does not exist.
 
-Response (example):
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Result not found"
+}
+```
+
+### `DELETE /api/search/results?query=saveetha%20engineering%20colge`
+
+Response body (number of deleted rows):
 ```json
 5
 ```
 
+Status codes:
+- `200 OK` on success.
+- `400 Bad Request` if `query` is empty.
+
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Query cannot be empty"
+}
+```
+
 ### `DELETE /api/search/history/{id}`
 
-Response:
+Response body:
 ```
 204 No Content
 ```
 
-### `DELETE /api/search/history?query=saveetha%20engineering%20college`
+Status codes:
+- `204 No Content` on success.
+- `404 Not Found` if query id does not exist.
+- `500 Internal Server Error` if results still reference the query.
 
-Response (example):
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Query not found"
+}
+```
+
+### `DELETE /api/search/history?query=saveetha%20engineering%20colge`
+
+Response body (number of deleted rows):
 ```json
 3
+```
+
+Status codes:
+- `200 OK` on success.
+- `400 Bad Request` if `query` is empty.
+
+Error response example:
+```json
+{
+  "timestamp": "2026-02-11T23:05:34.7832449",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Query cannot be empty"
+}
 ```
 
 ## Class Diagram
@@ -182,7 +351,7 @@ classDiagram
     }
 
     class SearchQueryRepository {
-        +List~SearchQuery~ findTop10ByOrderBySearchedAtDesc()
+        +List~SearchQuery~ findAllByOrderBySearchedAtDesc()
         +List~SearchQuery~ findTop10ByQueryTextOrderBySearchedAtDesc(String queryText)
         +List~Object[]~ findMostPopularQueries()
         +long deleteByQueryText(String queryText)
@@ -192,6 +361,7 @@ classDiagram
         +List~SearchResult~ findBySearchQueryIdOrderByRankAsc(Long searchQueryId)
         +List~SearchResult~ findByQueryTextOrderByRankAsc(String queryText)
         +long deleteByQueryText(String queryText)
+        +int deleteBySearchQueryId(Long searchQueryId)
     }
 
     class WebPageRepository {
@@ -232,6 +402,7 @@ classDiagram
     }
 
     class SearchResponseDTO {
+        +Long resultId
         +Long pageId
         +String url
         +String title
@@ -268,6 +439,3 @@ classDiagram
 4. For each result, the backend computes cosine similarity and a relevance score.
 5. The backend stores the search query, web page, and ranking data in MySQL.
 6. The backend returns the results to the frontend for display.
-
-
-

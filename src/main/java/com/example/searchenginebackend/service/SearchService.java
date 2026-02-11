@@ -12,6 +12,7 @@ import com.example.searchenginebackend.repository.SearchQueryRepository;
 import com.example.searchenginebackend.repository.SearchResultRepository;
 import com.example.searchenginebackend.repository.WebPageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +69,7 @@ public class SearchService {
             searchResultRepository.save(searchResult);
 
             response.add(new SearchResponseDTO(
+                    searchResult.getId(),
                     pageEntity.getId(),
                     result.link(),
                     title,
@@ -81,7 +83,7 @@ public class SearchService {
     }
 
     public List<SearchQuery> getRecentQueries() {
-        return searchQueryRepository.findTop10ByOrderBySearchedAtDesc();
+        return searchQueryRepository.findAllByOrderBySearchedAtDesc();
     }
 
     public List<TopQueryDTO> getTopQueries() {
@@ -107,6 +109,7 @@ public class SearchService {
         List<SearchResponseDTO> response = new ArrayList<>();
         for (SearchResult result : results) {
             response.add(new SearchResponseDTO(
+                    result.getId(),
                     result.getWebPage().getId(),
                     result.getWebPage().getUrl(),
                     result.getWebPage().getTitle(),
@@ -149,18 +152,22 @@ public class SearchService {
         return searchResultRepository.deleteByQueryText(normalizedQuery);
     }
 
+    @Transactional
     public void deleteQueryById(Long id) {
         if (!searchQueryRepository.existsById(id)) {
             throw new ResourceNotFoundException("Query not found");
         }
+        searchResultRepository.deleteBySearchQueryId(id);
         searchQueryRepository.deleteById(id);
     }
 
+    @Transactional
     public long deleteQueryByText(String query) {
         String normalizedQuery = query == null ? "" : query.trim();
         if (normalizedQuery.isBlank()) {
             throw new BadRequestException("Query cannot be empty");
         }
+        searchResultRepository.deleteByQueryText(normalizedQuery);
         return searchQueryRepository.deleteByQueryText(normalizedQuery);
     }
 

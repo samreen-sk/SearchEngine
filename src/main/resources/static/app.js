@@ -137,3 +137,14 @@ resetBtn.addEventListener("click", () => {
   setStatus("Enter a query to start.");
   elapsedText.textContent = "";
 });
+
+window.addEventListener("load", () => {
+  const params = new URLSearchParams(window.location.search);
+  const q = (params.get("q") || "").trim();
+  if (q) {
+    queryInput.value = q;
+    pageInput.value = 0;
+    lastQuery = q;
+    search(q, 0, 10);
+  }
+});

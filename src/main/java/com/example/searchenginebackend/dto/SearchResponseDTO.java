@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class SearchResponseDTO {
 
+    private Long resultId;
     private Long pageId;
     private String url;
     private String title;
