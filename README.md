@@ -7,6 +7,20 @@
 ## Description
 Realtime Web Page Search Engine is a search backend with a simple UI. It fetches live search results, computes relevance signals, and stores queries/results in MySQL for inspection, analytics, and reuse. It is built for students and developers who want a transparent, inspectable search pipeline rather than a black-box search experience.
 
+## Features
+
+- Realtime search with pagination support.
+- Relevance scoring based on rank plus cosine similarity metrics stored for analysis.
+- Search history, top queries, and stored results retrieval.
+- Update and delete operations for stored results and history.
+- Simple web UI for searching and viewing insights.
+
+## Architecture Diagram
+
+![alt text](Architecture-diagram.png)
+
+
+
 ## API Endpoints
 
 | Method | Path | Description |
@@ -254,3 +268,6 @@ classDiagram
 4. For each result, the backend computes cosine similarity and a relevance score.
 5. The backend stores the search query, web page, and ranking data in MySQL.
 6. The backend returns the results to the frontend for display.
+
+
+
