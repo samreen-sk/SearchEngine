@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Profiles</title>
+    <link rel="stylesheet" href="/styles.css?v=7" />
+  </head>
+  <body class="history-page">
+    <main class="app">
+      <header class="header">
+        <div class="brand">Admin</div>
+        <div class="header-links">
+          <a class="history-link" href="/profiles.html">Profiles</a>
+        </div>
+        <div class="subtitle">View all user profiles</div>
+        <div id="pageMessage" class="page-message" aria-live="polite"></div>
+      </header>
+
+      <section class="panel">
+        <div class="history-header">
+          <div>
+            <div class="history-title">Admin profile listing</div>
+          </div>
+        </div>
+        <div class="history-toolbar">
+          <input id="adminPasswordInput" type="password" placeholder="Admin password" />
+          <button id="loadAdminProfilesBtn" type="button" class="ghost">Load profiles</button>
+        </div>
+        <div id="adminProfilesGrid" class="profiles-grid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="history-header">
+          <div>
+            <div class="history-title">Selected user data</div>
+            <div class="history-subtitle">History, top queries, and stored results.</div>
+          </div>
+        </div>
+        <div id="adminProfileData" class="admin-data"></div>
+      </section>
+    </main>
+
+    <script src="/nav.js?v=6"></script>
+    <script src="/admin.js?v=3"></script>
+  </body>
+</html>
+
+
+

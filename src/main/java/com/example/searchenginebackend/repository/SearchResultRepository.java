@@ -15,11 +15,26 @@ public interface SearchResultRepository extends JpaRepository<SearchResult, Long
     // Retrieve the results logged for a specific query session
     List<SearchResult> findBySearchQueryIdOrderByRankAsc(Long searchQueryId);
 
-    List<SearchResult> findByQueryTextOrderByRankAsc(String queryText);
+    List<SearchResult> findByQueryTextAndSearchQueryProfileIdOrderByRankAsc(
+            String queryText, Long profileId);
 
-    long deleteByQueryText(String queryText);
+    long deleteByQueryTextAndSearchQueryProfileId(String queryText, Long profileId);
 
     @Modifying
     @Query("DELETE FROM SearchResult r WHERE r.searchQuery.id = :searchQueryId")
     int deleteBySearchQueryId(@Param("searchQueryId") Long searchQueryId);
+
+    @Modifying
+    @Query("DELETE FROM SearchResult r WHERE r.searchQuery.id = :searchQueryId AND r.searchQuery.profileId = :profileId")
+    int deleteBySearchQueryIdAndProfileId(
+            @Param("searchQueryId") Long searchQueryId,
+            @Param("profileId") Long profileId);
+
+    boolean existsByIdAndSearchQueryProfileId(Long id, Long profileId);
+
+    java.util.Optional<SearchResult> findByIdAndSearchQueryProfileId(Long id, Long profileId);
+
+    java.util.List<SearchResult> findTop100BySearchQueryProfileIdOrderByCreatedAtDesc(Long profileId);
+
+    long countBySearchQueryProfileId(Long profileId);
 }

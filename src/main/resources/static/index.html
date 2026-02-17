@@ -4,18 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Search Engine Test UI</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=7" />
   </head>
   <body>
     <main class="app">
       <header class="header">
         <div class="brand">Search Engine</div>
+        <div id="activeProfileText" class="subtitle"></div>
         <div class="header-links">
+          <a class="history-link" href="/">Search</a>
           <a class="history-link" href="/history.html">History</a>
           <a class="history-link" href="/top.html">Top Queries</a>
           <a class="history-link" href="/stored.html">Stored Results</a>
+          <button id="logoutBtn" type="button" class="history-link">Logout</button>
         </div>
-        <div class="subtitle"></div>
       </header>
 
       <section class="panel">
@@ -54,6 +56,9 @@
 
     </main>
 
-    <script src="/app.js?v=2"></script>
+    <script src="/nav.js?v=6"></script>
+    <script src="/app.js?v=7"></script>
   </body>
 </html>
+
+

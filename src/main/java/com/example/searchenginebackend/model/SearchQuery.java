@@ -24,11 +24,15 @@ public class SearchQuery {
     @Column(name = "query_text", nullable = false, length = 512)
     private String queryText;
 
+    @Column(name = "profile_id")
+    private Long profileId;
+
     @Column(name = "searched_at", nullable = false)
     private LocalDateTime searchedAt;
 
-    public SearchQuery(String queryText) {
+    public SearchQuery(String queryText, Long profileId) {
         this.queryText = queryText;
+        this.profileId = profileId;
         this.searchedAt = LocalDateTime.now();
     }
 

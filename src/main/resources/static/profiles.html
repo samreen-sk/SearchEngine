@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Profiles</title>
+    <link rel="stylesheet" href="/styles.css?v=7" />
+  </head>
+  <body class="history-page">
+    <main class="app">
+      <header class="header">
+        <div class="brand">Profiles</div>
+        <div class="header-links">
+          <button id="logoutBtn" type="button" class="history-link">Logout</button>
+        </div>
+        <div class="subtitle">Create a profile or unlock an existing one to continue.</div>
+        <div id="pageMessage" class="page-message" aria-live="polite"></div>
+      </header>
+
+      <section class="panel">
+        <div class="history-header">
+          <div>
+            <div class="history-title">Create profile</div>
+            <div class="history-subtitle">Password is required for open and delete operations.</div>
+          </div>
+        </div>
+        <div class="create-profile-card">
+          <div class="create-profile-icon">+</div>
+          <div class="create-profile-fields">
+            <input id="profileNameInput" type="text" placeholder="Profile name" />
+            <input id="profilePasswordInput" type="password" placeholder="Profile password" />
+            <button id="createProfileBtn" type="button" class="ghost">Create profile</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="history-header">
+          <div>
+            <div class="history-title">Profile cards</div>
+            <div class="history-subtitle">Select a profile and enter password to open.</div>
+          </div>
+        </div>
+        <div id="profilesGrid" class="profiles-grid"></div>
+      </section>
+    </main>
+
+    <script src="/nav.js?v=6"></script>
+    <script src="/profiles.js?v=8"></script>
+  </body>
+</html>
+
+
+

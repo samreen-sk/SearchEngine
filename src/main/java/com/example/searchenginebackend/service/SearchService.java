@@ -32,14 +32,15 @@ public class SearchService {
     private final WebPageRepository webPageRepository;
     private final IndexingService indexingService;
 
-    public List<SearchResponseDTO> search(String query, Pageable pageable) {
+    public List<SearchResponseDTO> search(String query, Pageable pageable, Long profileId) {
         String normalizedQuery = query == null ? "" : query.trim();
         if (normalizedQuery.isBlank()) {
             throw new BadRequestException("Query cannot be empty");
         }
+        validateProfileId(profileId);
 
         SearchQuery searchQuery =
-                searchQueryRepository.save(new SearchQuery(normalizedQuery));
+                searchQueryRepository.save(new SearchQuery(normalizedQuery, profileId));
 
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
@@ -82,12 +83,14 @@ public class SearchService {
         return response;
     }
 
-    public List<SearchQuery> getRecentQueries() {
-        return searchQueryRepository.findAllByOrderBySearchedAtDesc();
+    public List<SearchQuery> getRecentQueries(Long profileId) {
+        validateProfileId(profileId);
+        return searchQueryRepository.findAllByProfileIdOrderBySearchedAtDesc(profileId);
     }
 
-    public List<TopQueryDTO> getTopQueries() {
-        List<Object[]> rows = searchQueryRepository.findMostPopularQueries();
+    public List<TopQueryDTO> getTopQueries(Long profileId) {
+        validateProfileId(profileId);
+        List<Object[]> rows = searchQueryRepository.findMostPopularQueries(profileId);
         List<TopQueryDTO> output = new ArrayList<>();
         for (Object[] row : rows) {
             String query = String.valueOf(row[0]);
@@ -97,14 +100,16 @@ public class SearchService {
         return output;
     }
 
-    public List<SearchResponseDTO> getStoredResults(String query) {
+    public List<SearchResponseDTO> getStoredResults(String query, Long profileId) {
         String normalizedQuery = query == null ? "" : query.trim();
         if (normalizedQuery.isBlank()) {
             throw new BadRequestException("Query cannot be empty");
         }
+        validateProfileId(profileId);
 
         List<SearchResult> results =
-                searchResultRepository.findByQueryTextOrderByRankAsc(normalizedQuery);
+                searchResultRepository.findByQueryTextAndSearchQueryProfileIdOrderByRankAsc(
+                        normalizedQuery, profileId);
 
         List<SearchResponseDTO> response = new ArrayList<>();
         for (SearchResult result : results) {
@@ -120,8 +125,9 @@ public class SearchService {
         return response;
     }
 
-    public SearchResult updateResult(Long id, UpdateSearchResultDTO update) {
-        SearchResult result = searchResultRepository.findById(id)
+    public SearchResult updateResult(Long id, Long profileId, UpdateSearchResultDTO update) {
+        validateProfileId(profileId);
+        SearchResult result = searchResultRepository.findByIdAndSearchQueryProfileId(id, profileId)
                 .orElseThrow(() -> new ResourceNotFoundException("Result not found"));
 
         if (update.getRank() != null) {
@@ -137,38 +143,49 @@ public class SearchService {
         return searchResultRepository.save(result);
     }
 
-    public void deleteResult(Long id) {
-        if (!searchResultRepository.existsById(id)) {
+    public void deleteResult(Long id, Long profileId) {
+        validateProfileId(profileId);
+        if (!searchResultRepository.existsByIdAndSearchQueryProfileId(id, profileId)) {
             throw new ResourceNotFoundException("Result not found");
         }
         searchResultRepository.deleteById(id);
     }
 
-    public long deleteResultsByQuery(String query) {
+    public long deleteResultsByQuery(String query, Long profileId) {
         String normalizedQuery = query == null ? "" : query.trim();
         if (normalizedQuery.isBlank()) {
             throw new BadRequestException("Query cannot be empty");
         }
-        return searchResultRepository.deleteByQueryText(normalizedQuery);
+        validateProfileId(profileId);
+        return searchResultRepository.deleteByQueryTextAndSearchQueryProfileId(
+                normalizedQuery, profileId);
     }
 
     @Transactional
-    public void deleteQueryById(Long id) {
-        if (!searchQueryRepository.existsById(id)) {
+    public void deleteQueryById(Long id, Long profileId) {
+        validateProfileId(profileId);
+        if (!searchQueryRepository.existsByIdAndProfileId(id, profileId)) {
             throw new ResourceNotFoundException("Query not found");
         }
-        searchResultRepository.deleteBySearchQueryId(id);
+        searchResultRepository.deleteBySearchQueryIdAndProfileId(id, profileId);
         searchQueryRepository.deleteById(id);
     }
 
     @Transactional
-    public long deleteQueryByText(String query) {
+    public long deleteQueryByText(String query, Long profileId) {
         String normalizedQuery = query == null ? "" : query.trim();
         if (normalizedQuery.isBlank()) {
             throw new BadRequestException("Query cannot be empty");
         }
-        searchResultRepository.deleteByQueryText(normalizedQuery);
-        return searchQueryRepository.deleteByQueryText(normalizedQuery);
+        validateProfileId(profileId);
+        searchResultRepository.deleteByQueryTextAndSearchQueryProfileId(normalizedQuery, profileId);
+        return searchQueryRepository.deleteByQueryTextAndProfileId(normalizedQuery, profileId);
+    }
+
+    private void validateProfileId(Long profileId) {
+        if (profileId == null || profileId <= 0) {
+            throw new BadRequestException("Valid profile id is required");
+        }
     }
 
     private WebPage upsertWebPage(String url, String title, String content) {

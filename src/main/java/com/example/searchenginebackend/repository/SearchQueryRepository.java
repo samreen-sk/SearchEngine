@@ -2,6 +2,7 @@ package com.example.searchenginebackend.repository;
 
 import com.example.searchenginebackend.model.SearchQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -9,23 +10,23 @@ import java.util.List;
 @Repository
 public interface SearchQueryRepository extends JpaRepository<SearchQuery, Long> {
 
-    // For Analytics: Get the most recent searches
-    List<SearchQuery> findTop10ByOrderBySearchedAtDesc();
+    List<SearchQuery> findAllByProfileIdOrderBySearchedAtDesc(Long profileId);
 
-    List<SearchQuery> findAllByOrderBySearchedAtDesc();
+    long countByProfileId(Long profileId);
 
-    List<SearchQuery> findTop10ByQueryTextOrderBySearchedAtDesc(String queryText);
+    long deleteByQueryTextAndProfileId(String queryText, Long profileId);
 
-    long deleteByQueryText(String queryText);
+    boolean existsByIdAndProfileId(Long id, Long profileId);
 
     // For Analytics: Find popular queries (simple grouping)
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT query_text AS queryText, COUNT(*) AS cnt " +
                     "FROM search_queries " +
+                    "WHERE profile_id = :profileId " +
                     "GROUP BY query_text " +
                     "ORDER BY cnt DESC " +
                     "LIMIT 10",
             nativeQuery = true
     )
-    List<Object[]> findMostPopularQueries();
+    List<Object[]> findMostPopularQueries(@Param("profileId") Long profileId);
 }

@@ -147,3 +147,8 @@ if (deleteStoredResultsBtn) {
     loadStoredResults(query);
   });
 }
+
+window.addEventListener("load", () => {
+  storedResultsListEl.innerHTML =
+    `<div class="history-empty">Enter a query and load stored results.</div>`;
+});
