@@ -398,80 +398,122 @@ Common cases:
 ## Class Diagram
 ```mermaid
 classDiagram
-    direction LR
-
     class SecurityConfig
     class SecurityUtil {
-        +currentProfileId()
+        +Long currentProfileId()
     }
     class AuthenticatedProfile {
-        +profileId
-        +displayName
+        +Long profileId()
+        +String displayName()
     }
 
-    class AuthController
-    class ProfileController
-    class SearchController
-    class AdminController
+    class AuthController {
+        +AuthMeResponseDTO profileLogin(ProfileLoginRequestDTO, HttpServletRequest)
+        +AuthMeResponseDTO adminLogin(AdminLoginRequestDTO, HttpServletRequest)
+        +AuthMeResponseDTO me()
+        +void logout(HttpServletRequest, HttpServletResponse)
+    }
 
-    class AuthService
-    class ProfileService
-    class SearchService
-    class AdminService
+    class ProfileController {
+        +ProfileResponseDTO createProfile(CreateProfileRequestDTO)
+        +List~ProfileResponseDTO~ publicProfiles()
+        +ProfileVerifyResponseDTO verifyProfile(Long, VerifyProfileRequestDTO)
+        +void deleteProfile(Long, DeleteProfileRequestDTO)
+    }
 
-    class ProfileRepository
-    class SearchQueryRepository
-    class SearchResultRepository
-    class WebPageRepository
-    class SerperSearchService
+    class SearchController {
+        +List~SearchResponseDTO~ search(SearchRequestDTO)
+        +List~SearchQuery~ history()
+        +List~TopQueryDTO~ topQueries()
+        +List~SearchResponseDTO~ resultsByQuery(String)
+        +SearchResult updateResult(Long, UpdateSearchResultDTO)
+        +void deleteResult(Long)
+        +long deleteResultsByQuery(String)
+        +void deleteHistoryById(Long)
+        +long deleteHistoryByQuery(String)
+    }
+
+    class AdminController {
+        +List~ProfileResponseDTO~ adminProfiles()
+        +AdminProfileDataDTO adminProfileData(Long)
+    }
+
+    class AuthService {
+        +AuthMeResponseDTO loginProfile(Long, String, HttpServletRequest)
+        +AuthMeResponseDTO loginAdmin(String, HttpServletRequest)
+        +AuthMeResponseDTO me()
+        +void logout(HttpServletRequest, HttpServletResponse)
+    }
+
+    class ProfileService {
+        +ProfileResponseDTO createProfile(CreateProfileRequestDTO)
+        +List~ProfileResponseDTO~ getPublicProfiles()
+        +List~ProfileResponseDTO~ getAllProfilesForAdmin()
+        +ProfileVerifyResponseDTO verifyProfilePassword(Long, String)
+        +void deleteProfile(Long, String)
+    }
+
+    class SearchService {
+        +List~SearchResponseDTO~ search(String, Pageable, Long)
+        +List~SearchQuery~ getRecentQueries(Long)
+        +List~TopQueryDTO~ getTopQueries(Long)
+        +List~SearchResponseDTO~ getStoredResults(String, Long)
+    }
+
+    class AdminService {
+        +AdminProfileDataDTO getProfileData(Long)
+    }
 
     class Profile {
-        +id
-        +displayName
-        +passwordHash
-        +createdAt
+        +Long id
+        +String displayName
+        +String passwordHash
+        +LocalDateTime createdAt
     }
+
     class SearchQuery {
-        +id
-        +queryText
-        +profileId
-        +searchedAt
+        +Long id
+        +String queryText
+        +Long profileId
+        +LocalDateTime searchedAt
     }
+
     class SearchResult {
-        +id
-        +queryText
-        +cosineSimilarity
-        +relevanceScore
-        +rank
-        +createdAt
+        +Long id
+        +String queryText
+        +double cosineSimilarity
+        +double relevanceScore
+        +int rank
+        +LocalDateTime createdAt
     }
+
     class WebPage {
-        +id
-        +url
-        +title
-        +content
-        +crawlTime
-        +lastUpdated
+        +Long id
+        +String url
+        +String title
+        +String content
+        +LocalDateTime crawlTime
+        +LocalDateTime lastUpdated
     }
 
-    AuthController --> AuthService
-    ProfileController --> ProfileService
-    SearchController --> SearchService
-    SearchController --> SecurityUtil
-    AdminController --> AdminService
-    AdminController --> ProfileService
+    AuthController --> AuthService : uses
+    ProfileController --> ProfileService : uses
+    SearchController --> SearchService : uses
+    SearchController --> SecurityUtil : current profile
+    AdminController --> ProfileService : uses
+    AdminController --> AdminService : uses
 
-    AuthService --> ProfileRepository
-    SearchService --> SearchQueryRepository
-    SearchService --> SearchResultRepository
-    SearchService --> WebPageRepository
-    SearchService --> SerperSearchService
-    AdminService --> ProfileRepository
-    AdminService --> SearchQueryRepository
-    AdminService --> SearchResultRepository
+    AuthService --> ProfileRepository : validates profile
+    SearchService --> SearchQueryRepository : query persistence
+    SearchService --> SearchResultRepository : result persistence
+    SearchService --> WebPageRepository : page persistence
+    SearchService --> SerperSearchService : external search
+    AdminService --> ProfileRepository : reads profiles
+    AdminService --> SearchQueryRepository : reads history
+    AdminService --> SearchResultRepository : reads results
 
-    SearchResult --> SearchQuery
-    SearchResult --> WebPage
+    SearchResult --> SearchQuery : many-to-one
+    SearchResult --> WebPage : many-to-one
 ```
 
 ## End-to-End Flow
