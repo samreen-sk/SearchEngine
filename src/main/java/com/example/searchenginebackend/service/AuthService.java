@@ -5,6 +5,7 @@ import com.example.searchenginebackend.exception.BadRequestException;
 import com.example.searchenginebackend.exception.ResourceNotFoundException;
 import com.example.searchenginebackend.model.Profile;
 import com.example.searchenginebackend.repository.ProfileRepository;
+import com.example.searchenginebackend.security.AuthTokenService;
 import com.example.searchenginebackend.security.AuthenticatedProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ public class AuthService {
 
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthTokenService authTokenService;
 
     @Value("${security.admin.password:admin123}")
     private String adminPassword;
@@ -53,7 +55,9 @@ public class AuthService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
         persistAuthentication(authentication, request);
 
-        return new AuthMeResponseDTO(true, "USER", profile.getId(), profile.getDisplayName());
+        String accessToken = authTokenService.createUserToken(profile.getId(), profile.getDisplayName());
+        String refreshToken = authTokenService.createUserRefreshToken(profile.getId(), profile.getDisplayName());
+        return new AuthMeResponseDTO(true, "USER", profile.getId(), profile.getDisplayName(), accessToken, refreshToken);
     }
 
     public AuthMeResponseDTO loginAdmin(String password, HttpServletRequest request) {
@@ -68,23 +72,43 @@ public class AuthService {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
         Authentication authentication = new UsernamePasswordAuthenticationToken("admin", null, authorities);
         persistAuthentication(authentication, request);
-        return new AuthMeResponseDTO(true, "ADMIN", null, "admin");
+
+        String accessToken = authTokenService.createAdminToken();
+        String refreshToken = authTokenService.createAdminRefreshToken();
+        return new AuthMeResponseDTO(true, "ADMIN", null, "admin", accessToken, refreshToken);
+    }
+
+    public AuthMeResponseDTO refresh(String refreshToken) {
+        String token = refreshToken == null ? "" : refreshToken.trim();
+        if (token.isBlank()) {
+            throw new BadRequestException("Refresh token is required");
+        }
+        AuthTokenService.TokenPrincipal principal = authTokenService.parseRefresh(token);
+        if ("ADMIN".equals(principal.role())) {
+            String newAccessToken = authTokenService.createAdminToken();
+            String newRefreshToken = authTokenService.createAdminRefreshToken();
+            return new AuthMeResponseDTO(true, "ADMIN", null, "admin", newAccessToken, newRefreshToken);
+        }
+        String displayName = principal.displayName() == null ? "User" : principal.displayName();
+        String newAccessToken = authTokenService.createUserToken(principal.profileId(), displayName);
+        String newRefreshToken = authTokenService.createUserRefreshToken(principal.profileId(), displayName);
+        return new AuthMeResponseDTO(true, "USER", principal.profileId(), displayName, newAccessToken, newRefreshToken);
     }
 
     public AuthMeResponseDTO me() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return new AuthMeResponseDTO(false, null, null, null);
+            return new AuthMeResponseDTO(false, null, null, null, null, null);
         }
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         if (isAdmin) {
-            return new AuthMeResponseDTO(true, "ADMIN", null, "admin");
+            return new AuthMeResponseDTO(true, "ADMIN", null, "admin", null, null);
         }
         if (auth.getPrincipal() instanceof AuthenticatedProfile profile) {
-            return new AuthMeResponseDTO(true, "USER", profile.profileId(), profile.displayName());
+            return new AuthMeResponseDTO(true, "USER", profile.profileId(), profile.displayName(), null, null);
         }
-        return new AuthMeResponseDTO(false, null, null, null);
+        return new AuthMeResponseDTO(false, null, null, null, null, null);
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {

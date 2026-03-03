@@ -1,4 +1,4 @@
-HELP.md
+﻿HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,3 +31,19 @@ build/
 
 ### VS Code ###
 .vscode/
+# Node / Frontend
+node_modules/
+**/node_modules/
+frontend/dist/
+dist/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS / temp
+.DS_Store
+Thumbs.db
+*.tmp
+

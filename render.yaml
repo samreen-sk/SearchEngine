@@ -1,0 +1,39 @@
+﻿services:
+  - type: pserv
+    name: searchengine-db
+    env: docker
+    plan: starter
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+    envVars:
+      - key: MYSQL_DATABASE
+        value: searchengine_db
+      - key: MYSQL_ROOT_PASSWORD
+        sync: false
+
+  - type: web
+    name: searchengine-app
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:mysql://searchengine-db:3306/searchengine_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - key: SPRING_DATASOURCE_USERNAME
+        value: root
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_JPA_SHOW_SQL
+        value: true
+      - key: SERPER_API_BASE_URL
+        value: https://google.serper.dev
+      - key: SERPER_API_KEY
+        sync: false
+      - key: SECURITY_ADMIN_PASSWORD
+        sync: false

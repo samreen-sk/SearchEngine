@@ -4,58 +4,98 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen)
 ![Spring Security](https://img.shields.io/badge/Spring%20Security-Enabled-success)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
+![React](https://img.shields.io/badge/React-18-61dafb)
+![Vite](https://img.shields.io/badge/Vite-5-646cff)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8)
 
 ## Overview
-This project is a secure, profile-driven search application built with Spring Boot, Spring Security, and MySQL.
+This project is a secure, profile-driven search platform built with Spring Boot, Spring Security, MySQL, and a React + Vite frontend.
 It combines:
 - Real-time web search retrieval and relevance scoring
 - Profile-level data isolation for history, top queries, and stored results
 - Password-protected profile operations (create/open/delete)
 - Admin-only analytics over all user profiles
+- Modern SPA UX (Tailwind CSS, Framer Motion, Lucide icons, toast feedback, skeleton loading)
 
-The application uses Spring Security's filter chain with server-side session authentication (cookie-based `JSESSIONID`) and role-based authorization (`ROLE_USER`, `ROLE_ADMIN`).
+The application uses Spring Security with **hybrid authentication**:
+- Session auth (Spring Security context / `JSESSIONID`) for stable page-to-page redirects
+- Bearer tokens (access + refresh) for API authorization and automatic token refresh
+- Role-based authorization (`ROLE_USER`, `ROLE_ADMIN`)
 
-
-## Architecture Diagram
-![alt text](Arch_diag.png)
 
 ## Key Features
-- Profile-first login flow (`/profiles.html`)
+- Profile-first login flow (`/profiles`)
 - Password-hashed profile authentication (BCrypt)
-- Spring Security session login/logout APIs
+- Spring Security hybrid auth (session + token) login/logout APIs
 - Profile-scoped search data access enforced in service layer
 - Search history management with delete by id or query text
 - Top query analytics per profile
 - Stored results retrieval/update/delete
-- Dedicated admin dashboard (`/admin.html`) for cross-profile analytics
+- Dedicated admin dashboard (`/admin`) for cross-profile analytics
+- Single-page app build pipeline (Vite build output served by Spring Boot)
+- Library-based client routing with `react-router-dom` route guards
 
 ## UI Pages
-- `/profiles.html` - create/open/delete profiles
+- `/profiles` - create/open/delete profiles
 - `/` - search page
-- `/history.html` - profile query history
-- `/top.html` - profile top queries
-- `/stored.html` - stored results management
-- `/admin.html` - admin login and profile analytics
+- `/history` - profile query history
+- `/top` - profile top queries
+- `/stored` - stored results management
+- `/admin-login` - admin login page
+- `/admin` - admin analytics dashboard
+
+## Frontend Stack
+- React 18 + Vite 5
+- React Router DOM 7 (`BrowserRouter`, `Routes`, `Route`, `Navigate`)
+- Tailwind CSS 3
+- Framer Motion (page transitions / micro-interactions)
+- Lucide React icons
+- Componentized UI structure (`components/ui`, `pages`, `hooks`, `lib`)
+
+## React Router Handling
+This project uses **library-based SPA routing with `react-router-dom`**:
+
+1. `frontend/src/main.jsx` wraps app in `BrowserRouter`.
+2. `frontend/src/app.jsx` defines route tree with `Routes` / `Route`:
+   - `/`, `/profiles`, `/history`, `/top`, `/stored`, `/admin-login`, `/admin`
+3. Route-level protection is handled by wrappers:
+   - `ProtectedUserRoute` for user pages
+   - `AdminRoute` for admin dashboard
+   - unauthenticated users are redirected using `Navigate`
+4. Spring serves SPA routes through `SpaController`:
+   - `src/main/java/com/example/searchenginebackend/controller/SpaController.java`
+   - each app route is forwarded to `/index.html`
+5. Security allows SPA/static paths in `SecurityConfig`:
+   - `/assets/**`, `/profiles`, `/admin-login`, etc.
 
 ## Security Model
-- `POST /api/auth/profile-login` authenticates a profile user session (`ROLE_USER`)
-- `POST /api/auth/admin-login` authenticates an admin session (`ROLE_ADMIN`)
-- `GET /api/auth/me` returns the current authenticated identity
-- `POST /api/auth/logout` invalidates server session and clears auth context
+- `POST /api/auth/profile-login` creates server session + returns `accessToken` and `refreshToken` (`ROLE_USER`)
+- `POST /api/auth/admin-login` creates server session + returns `accessToken` and `refreshToken` (`ROLE_ADMIN`)
+- Protected endpoints accept authenticated context from Bearer token (filter) and from active session
+- `GET /api/auth/me` resolves identity from Spring Security context
+- `POST /api/auth/logout` clears server session/context; frontend clears local tokens
 
 Authorization rules:
 - `/api/search/**` -> authenticated user required
 - `/api/admin/**` -> authenticated admin required
 - `/api/profiles/**` -> public (profile management + verify)
+- SPA routes like `/profiles`, `/history`, `/top`, `/stored`, `/admin-login` are publicly accessible entry routes.
 
 Notes:
 - Search APIs do not use `X-Profile-Id` anymore.
 - Profile id is resolved from authenticated principal in Spring Security context.
+- Token signing/parsing: `AuthTokenService`
+- Token auth filter: `BearerTokenAuthenticationFilter`
+- Session persistence on login is handled in `AuthService.persistAuthentication(...)`
 
 Admin credential property:
 - File: `src/main/resources/application.properties`
 - Key: `security.admin.password`
 - Default fallback: `admin123`
+ 
+JWT properties:
+- `security.jwt.secret`
+- `security.jwt.expiration-ms`
 
 ## API Endpoints
 
@@ -64,7 +104,8 @@ Admin credential property:
 | --- | --- | --- | --- | --- |
 | POST | `/api/auth/profile-login` | No | Login as profile user | 200 |
 | POST | `/api/auth/admin-login` | No | Login as admin | 200 |
-| GET | `/api/auth/me` | Yes | Current session identity | 200 |
+| POST | `/api/auth/refresh` | No (refresh token body) | Rotate and issue new access token | 200 |
+| GET | `/api/auth/me` | Bearer Token | Current token identity | 200 |
 | POST | `/api/auth/logout` | No | Logout current session | 204 |
 
 ### 2) Profile APIs
@@ -114,7 +155,9 @@ Response `200`
   "authenticated": true,
   "role": "USER",
   "profileId": 1,
-  "displayName": "Saveetha Student"
+  "displayName": "Saveetha Student",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
@@ -131,18 +174,44 @@ Response `200`
   "authenticated": true,
   "role": "ADMIN",
   "profileId": null,
-  "displayName": "admin"
+  "displayName": "admin",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
-#### `GET /api/auth/me`
+#### `POST /api/auth/refresh`
+Request
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
 Response `200`
 ```json
 {
   "authenticated": true,
   "role": "USER",
   "profileId": 1,
-  "displayName": "Saveetha Student"
+  "displayName": "Saveetha Student",
+  "accessToken": "new-access-token",
+  "refreshToken": "new-refresh-token"
+}
+```
+
+#### `GET /api/auth/me`
+Request Header
+```http
+Authorization: Bearer <accessToken>
+```
+Response `200`
+```json
+{
+  "authenticated": true,
+  "role": "USER",
+  "profileId": 1,
+  "displayName": "Saveetha Student",
+  "accessToken": null
 }
 ```
 
@@ -210,6 +279,11 @@ Request
 Response `204` (empty body)
 
 ### Search
+
+Header for all Search/Admin endpoints
+```http
+Authorization: Bearer <accessToken>
+```
 
 #### `POST /api/search`
 Request
@@ -382,7 +456,7 @@ Response `200`
 
 Common cases:
 - `400 Bad Request`: invalid input, wrong password, empty query
-- `401 Unauthorized`: not logged in for protected endpoint
+- `401 Unauthorized`: missing/invalid/expired Bearer token
 - `403 Forbidden`: logged in but role not permitted
 - `404 Not Found`: profile/result/query id not found
 - `500 Internal Server Error`: unhandled server error
@@ -399,6 +473,11 @@ Common cases:
 ```mermaid
 classDiagram
     class SecurityConfig
+    class SpaController {
+        +String spaEntryPoint()
+    }
+    class BearerTokenAuthenticationFilter
+    class AuthTokenService
     class SecurityUtil {
         +Long currentProfileId()
     }
@@ -408,10 +487,10 @@ classDiagram
     }
 
     class AuthController {
-        +AuthMeResponseDTO profileLogin(ProfileLoginRequestDTO, HttpServletRequest)
-        +AuthMeResponseDTO adminLogin(AdminLoginRequestDTO, HttpServletRequest)
+        +AuthMeResponseDTO profileLogin(ProfileLoginRequestDTO)
+        +AuthMeResponseDTO adminLogin(AdminLoginRequestDTO)
         +AuthMeResponseDTO me()
-        +void logout(HttpServletRequest, HttpServletResponse)
+        +void logout(HttpServletResponse)
     }
 
     class ProfileController {
@@ -439,10 +518,10 @@ classDiagram
     }
 
     class AuthService {
-        +AuthMeResponseDTO loginProfile(Long, String, HttpServletRequest)
-        +AuthMeResponseDTO loginAdmin(String, HttpServletRequest)
+        +AuthMeResponseDTO loginProfile(Long, String)
+        +AuthMeResponseDTO loginAdmin(String)
         +AuthMeResponseDTO me()
-        +void logout(HttpServletRequest, HttpServletResponse)
+        +void logout(HttpServletResponse)
     }
 
     class ProfileService {
@@ -497,13 +576,17 @@ classDiagram
     }
 
     AuthController --> AuthService : uses
+    SecurityConfig --> BearerTokenAuthenticationFilter : adds filter
+    BearerTokenAuthenticationFilter --> AuthTokenService : validates token
     ProfileController --> ProfileService : uses
     SearchController --> SearchService : uses
     SearchController --> SecurityUtil : current profile
     AdminController --> ProfileService : uses
     AdminController --> AdminService : uses
+    SpaController --> SecurityConfig : route + auth alignment
 
     AuthService --> ProfileRepository : validates profile
+    AuthService --> AuthTokenService : issues token
     SearchService --> SearchQueryRepository : query persistence
     SearchService --> SearchResultRepository : result persistence
     SearchService --> WebPageRepository : page persistence
@@ -517,11 +600,47 @@ classDiagram
 ```
 
 ## End-to-End Flow
-1. Open `/profiles.html`.
+1. Open `/profiles`.
 2. Create a profile (or select existing profile).
-3. Login via `POST /api/auth/profile-login`.
-4. Navigate to `/` and run searches.
-5. Use `/history.html`, `/top.html`, `/stored.html` for profile-specific data management.
-6. Logout via `POST /api/auth/logout`.
-7. For admin analytics, login from `/admin.html` using `POST /api/auth/admin-login`.
-8. Fetch `/api/admin/profiles` and `/api/admin/profiles/{id}/data`.
+3. Login via `POST /api/auth/profile-login` to establish session and store `accessToken` + `refreshToken`.
+4. Navigate to `/` and run searches (session and/or Bearer token auth applies).
+5. Use `/history`, `/top`, `/stored` for profile-specific data management.
+6. On `401/403`, frontend calls `POST /api/auth/refresh` with `refreshToken` and retries request.
+7. Use **Switch Profile** (sidebar) to clear tokens/session hints and return to `/profiles`.
+8. Logout via `POST /api/auth/logout` and clear local tokens.
+9. For admin analytics, login from `/admin-login` using `POST /api/auth/admin-login`.
+10. Fetch `/api/admin/profiles` and `/api/admin/profiles/{id}/data`.
+
+## Environment Variables
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO`
+- `SPRING_JPA_SHOW_SQL`
+- `SERPER_API_BASE_URL`
+- `SERPER_API_KEY`
+- `SECURITY_ADMIN_PASSWORD`
+- `SECURITY_JWT_SECRET`
+- `SECURITY_JWT_EXPIRATION_MS`
+- `SECURITY_JWT_REFRESH_EXPIRATION_MS`
+- `MYSQL_DATABASE`
+- `MYSQL_ROOT_PASSWORD`
+
+## Troubleshooting Redirect Glitches
+If you see redirect loops or page bounce issues after login/logout/switch-profile:
+
+1. Clear browser auth state:
+   - `localStorage.removeItem("authToken")`
+   - `localStorage.removeItem("refreshToken")`
+   - `sessionStorage.removeItem("activeProfileId")`
+   - `sessionStorage.removeItem("activeProfileName")`
+2. Refresh the page and login again from `/profiles` or `/admin-login`.
+3. Verify backend is running the latest build:
+   ```bash
+   ./mvnw -DskipTests package
+   ```
+4. If frontend assets are stale, rebuild:
+   ```bash
+   cd frontend
+   npm run build
+   ```

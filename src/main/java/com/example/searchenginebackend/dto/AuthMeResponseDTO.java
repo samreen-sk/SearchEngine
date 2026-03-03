@@ -10,4 +10,6 @@ public class AuthMeResponseDTO {
     private String role;
     private Long profileId;
     private String displayName;
+    private String accessToken;
+    private String refreshToken;
 }

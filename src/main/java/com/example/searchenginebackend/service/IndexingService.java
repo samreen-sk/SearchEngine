@@ -7,6 +7,7 @@ import com.example.searchenginebackend.repository.KeywordRepository;
 import com.example.searchenginebackend.repository.PageKeywordRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -27,10 +28,7 @@ public class IndexingService {
 
         for (Map.Entry<String, Integer> entry : keywords.entrySet()) {
 
-            Keyword keyword = keywordRepository
-                    .findByWord(entry.getKey())
-                    .orElseGet(() ->
-                            keywordRepository.save(new Keyword(entry.getKey())));
+            Keyword keyword = findOrCreateKeyword(entry.getKey());
 
             PageKeyword pageKeyword = new PageKeyword();
             pageKeyword.setWebPage(page);
@@ -43,5 +41,17 @@ public class IndexingService {
 
             pageKeywordRepository.save(pageKeyword);
         }
+    }
+
+    private Keyword findOrCreateKeyword(String word) {
+        return keywordRepository.findByWord(word).orElseGet(() -> {
+            try {
+                return keywordRepository.save(new Keyword(word));
+            } catch (DataIntegrityViolationException duplicateInsert) {
+                // Another transaction inserted the same keyword concurrently.
+                return keywordRepository.findByWord(word)
+                        .orElseThrow(() -> duplicateInsert);
+            }
+        });
     }
 }
