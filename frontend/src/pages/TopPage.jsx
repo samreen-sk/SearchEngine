@@ -19,9 +19,12 @@ export default function TopPage() {
       </Card>
       <div className="grid gap-3">
         {items.map((it, idx) => (
-          <Card key={`${it.query}-${idx}`} className="flex items-center justify-between">
+          <Card
+            key={`${it.query}-${idx}`}
+            className="flex items-center justify-between border-2 border-black shadow-[6px_6px_0px_black] hover:bg-pink-50 transition"
+          >
             <strong className="text-slate-800">{it.query}</strong>
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{it.count} searches</span>
+            <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-600">{it.count} searches</span>
           </Card>
         ))}
         {!items.length && <Card className="p-8 text-center text-sm text-slate-500">No top queries yet.</Card>}

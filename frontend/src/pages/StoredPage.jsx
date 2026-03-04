@@ -48,7 +48,7 @@ export default function StoredPage() {
               <ExternalLink size={14} />
             </a>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={async () => {
+              <Button className="bg-pink-500 hover:bg-pink-600 text-white" onClick={async () => {
                 await api(`/api/search/results/${it.resultId || it.id}`, {
                   method: "PUT",
                   body: JSON.stringify({ rank: it.rank, relevanceScore: it.score })

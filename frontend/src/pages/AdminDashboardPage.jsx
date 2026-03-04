@@ -170,7 +170,7 @@ export default function AdminDashboardPage({ me, onLogout }) {
                   key={p.id}
                   onClick={() => setSelectedId(p.id)}
                   className={`w-full rounded-xl border px-3 py-2 text-left ${
-                    selectedId === p.id ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-white hover:bg-slate-50"
+                    selectedId === p.id ? "border-indigo-300 bg-pink-50" : "border-slate-200 bg-white hover:bg-slate-50"
                   }`}
                 >
                   <p className="text-sm font-semibold text-slate-800">{p.displayName}</p>
@@ -200,7 +200,7 @@ export default function AdminDashboardPage({ me, onLogout }) {
             <div className="mt-4 grid h-48 grid-cols-7 items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
               {bars.map((b) => (
                 <div key={b.label} className="flex h-full flex-col items-center justify-end gap-1">
-                  <div className="w-full rounded-md bg-gradient-to-b from-indigo-500 to-indigo-600" style={{ height: `${Math.max(8, b.h)}%` }} />
+                  <div className="w-full rounded-md bg-gradient-to-b from-pink-500 to-pink-600" style={{ height: `${Math.max(8, b.h)}%` }} />
                   <span className="text-[10px] font-medium text-slate-500">{b.label}</span>
                 </div>
               ))}
@@ -212,7 +212,7 @@ export default function AdminDashboardPage({ me, onLogout }) {
               {topQueries.map((q) => (
                 <div key={q.query} className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
                   <span className="text-sm font-semibold text-slate-800">{q.query}</span>
-                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">{q.count}</span>
+                  <span className="rounded-full bg-pink-50 px-2 py-0.5 text-xs font-semibold text-pink-600">{q.count}</span>
                 </div>
               ))}
               {!topQueries.length && <p className="text-sm text-slate-500">No query insights yet.</p>}
@@ -277,7 +277,7 @@ export default function AdminDashboardPage({ me, onLogout }) {
                     }}
                     className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold ${
                       activeSection === m.id
-                        ? "bg-indigo-50 text-indigo-700"
+                        ? "bg-pink-50 text-pink-600"
                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
@@ -310,7 +310,7 @@ export default function AdminDashboardPage({ me, onLogout }) {
                 <Input className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search profiles, queries or logs..." />
               </div>
               <div className="hidden items-center gap-3 rounded-full border border-slate-200 bg-white px-2 py-1 sm:flex">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-pink-600">
                   {initials(me?.displayName || "Admin")}
                 </div>
                 <div className="pr-2">

@@ -28,7 +28,6 @@ public class WebPage {
     @Column(nullable = false, length = 512)
     private String title;
 
-    @Lob
     @Column(nullable = false)
     private String content;
 

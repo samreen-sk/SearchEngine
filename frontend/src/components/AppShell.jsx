@@ -19,7 +19,7 @@ export default function AppShell({ me, children, onLogout, onSwitchProfile }) {
       <div className="app-container grid min-h-screen grid-cols-1 gap-4 py-4 lg:grid-cols-[260px_1fr]">
         <aside className="card hidden p-4 lg:flex lg:flex-col">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-4">
-            <div className="rounded-xl bg-indigo-600 p-2 text-white"><Search size={16} /></div>
+            <div className="rounded-xl bg-pink-500 p-2 text-white shadow-md"><Search size={18} /></div>
             <div>
               <div className="text-sm font-bold tracking-tight">SEARCH ENGINE</div>
               <div className="text-xs text-slate-500">Realtime Retrieval Platform</div>
@@ -31,12 +31,12 @@ export default function AppShell({ me, children, onLogout, onSwitchProfile }) {
               <NavLink
                 key={item.key}
                 className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                  isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  isActive ? "bg-pink-50 text-pink-600" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
                 to={item.href}
                 end={item.href === "/"}
               >
-                <item.icon size={16} />
+                <item.icon size={18} />
                 {item.label}
               </NavLink>
             ))}
@@ -46,11 +46,11 @@ export default function AppShell({ me, children, onLogout, onSwitchProfile }) {
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700"><Shield size={14} /> Secure Mode</div>
               <p className="mt-1 text-xs text-emerald-600">Your searches are profile scoped and encrypted.</p>
             </div>
-            <Button variant="ghost" className="w-full" onClick={onSwitchProfile}>
+            <Button className="bg-pink-100 hover:bg-pink-200 text-pink-600" className="w-full" onClick={onSwitchProfile}>
               <RefreshCcw size={15} />
               Switch Profile
             </Button>
-            <Button variant="secondary" className="w-full" onClick={onLogout}>
+            <Button className="bg-pink-500 hover:bg-pink-600 text-white" className="w-full" onClick={onLogout}>
               <LogOut size={15} />
               Logout
             </Button>

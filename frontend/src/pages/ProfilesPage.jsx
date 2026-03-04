@@ -101,26 +101,32 @@ export default function ProfilesPage() {
 
       <section className="app-container mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {profiles.map((p) => (
-          <motion.article whileHover={{ y: -4 }} className="card relative flex min-h-[250px] flex-col items-center justify-center gap-3 p-5" key={p.id}>
+          <motion.article whileHover={{ y: -4 }} className="card-style relative flex min-h-[250px] flex-col items-center justify-center gap-3 p-5" key={p.id}>
             <button className="absolute right-3 top-3 rounded-lg border border-rose-100 bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100" onClick={() => remove(p)} aria-label="Delete profile">
               <Trash2 size={14} />
             </button>
-            <div className="grid h-16 w-16 place-items-center rounded-full bg-indigo-50 text-indigo-700"><UserRound size={24} /></div>
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-pink-100 text-pink-600"><UserRound size={24} /></div>
             <h3 className="text-lg font-bold text-slate-900">{p.displayName}</h3>
             <p className="text-xs text-slate-500">{formatTime(p.createdAt)}</p>
-            <Button onClick={() => login(p)}>
+            <Button className="bg-pink-500 hover:bg-pink-600 text-white" onClick={() => login(p)}>
               <Lock size={14} />
               Unlock
             </Button>
           </motion.article>
         ))}
 
-        <motion.article whileHover={{ y: -4 }} className="card flex min-h-[250px] flex-col justify-center gap-3 p-5">
+
+        <motion.article
+        whileHover={{ y: -6 }}
+        className="card-style flex min-h-[250px] flex-col justify-center gap-3 p-5 border-2 border-black shadow-[8px_8px_0px_black] transition hover:-translate-y-1"
+        >
           <div className="flex items-center gap-2 text-slate-900"><PlusCircle size={18} /><h3 className="text-lg font-bold">Add Profile</h3></div>
           <p className="text-sm text-slate-500">Create a new secure vault</p>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Profile name" />
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Profile password" />
-          <Button variant="secondary" onClick={create}>Create</Button>
+          <Button className="bg-pink-500 hover:bg-pink-600 text-white" onClick={create}>
+            Create
+          </Button>
         </motion.article>
       </section>
     </div>
