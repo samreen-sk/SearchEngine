@@ -126,7 +126,7 @@ export default function ProfilesPage() {
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Profile password" />
           <Button className="bg-pink-500 hover:bg-pink-600 text-white" onClick={create}>
             Create
-          </Button>
+          </Button>w
         </motion.article>
       </section>
     </div>

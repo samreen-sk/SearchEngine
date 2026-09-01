@@ -46,14 +46,21 @@ export default function AppShell({ me, children, onLogout, onSwitchProfile }) {
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700"><Shield size={14} /> Secure Mode</div>
               <p className="mt-1 text-xs text-emerald-600">Your searches are profile scoped and encrypted.</p>
             </div>
-            <Button className="bg-pink-100 hover:bg-pink-200 text-pink-600" className="w-full" onClick={onSwitchProfile}>
-              <RefreshCcw size={15} />
-              Switch Profile
-            </Button>
-            <Button className="bg-pink-500 hover:bg-pink-600 text-white" className="w-full" onClick={onLogout}>
-              <LogOut size={15} />
-              Logout
-            </Button>
+           <button
+             className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-pink-600 hover:bg-pink-700 text-white transition-all"
+             onClick={onSwitchProfile}
+           >
+             <RefreshCcw size={15} />
+             Switch Profile
+           </button>
+
+           <button
+             className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-pink-700 hover:bg-pink-800 text-white transition-all"
+             onClick={onLogout}
+           >
+             <LogOut size={15} />
+             Logout
+           </button>
           </div>
         </aside>
 
