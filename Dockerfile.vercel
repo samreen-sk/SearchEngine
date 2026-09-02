@@ -1,0 +1,34 @@
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /app
+
+COPY frontend/package*.json frontend/
+RUN cd frontend && npm install
+
+COPY frontend frontend
+
+COPY src/main/resources/static src/main/resources/static
+
+RUN cd frontend && npm run build
+
+
+FROM eclipse-temurin:17-jdk AS backend-build
+
+WORKDIR /app
+
+COPY . .
+
+COPY --from=frontend-build /app/src/main/resources/static /app/src/main/resources/static
+
+RUN chmod +x mvnw && ./mvnw -DskipTests clean package
+
+
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+COPY --from=backend-build /app/target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
