@@ -6,7 +6,6 @@ COPY frontend/package*.json frontend/
 RUN cd frontend && npm install
 
 COPY frontend frontend
-
 COPY src/main/resources/static src/main/resources/static
 
 RUN cd frontend && npm run build
